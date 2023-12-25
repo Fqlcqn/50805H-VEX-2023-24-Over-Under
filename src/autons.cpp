@@ -114,6 +114,7 @@ void auton_close_wp(){
   chassis.set_drive_pid(21, 100, true);
   chassis.wait_drive();
 
+  //TEST
 
   /*chassis.wait_drive();
   chassis.set_swing_pid(ez::LEFT_SWING, -55, SWING_SPEED);
