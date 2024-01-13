@@ -22,7 +22,7 @@ Drive chassis (
 
   // IMU Port
   // TODO: Mount IMU
-  ,3
+  ,2
 
   // Wheel Diameter (Remember, 4" wheels are actually 4.125!)
   //    (or tracking wheel diameter)
@@ -55,7 +55,7 @@ Drive chassis (
 );
 
 //  PROS materials used for the robots movement on the map. 
-pros::Motor slapper(20);
+pros::Motor slapper(100);
 pros::Motor blocker(10);
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::ADIDigitalOut wings('G', false);
@@ -97,7 +97,7 @@ void initialize() {
     Auton("Far Elim", auton_far_elim),
     Auton("Far WP", auton_far_wp),
     Auton("Close WP", auton_close_wp),
-    Auton("Example Drive\n\nDrive forward and come back.", drive_example),
+    Auton("Close Elim", drive_example),
    /* Auton("Example Turn\n\nTurn 3 times.", turn_example),
     Auton("Offense Auton\n\nTurn 3 times.", auton_offense),
     Auton("Drive and Turn\n\nDrive forward, turn, come back. ", drive_and_turn),
@@ -205,8 +205,8 @@ void opcontrol() {
       slapper.move(0);
     }
       }
-    bool slapper_toggle = master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A) == 1;
-    if(slapper_toggle){
+    bool slapper_hold = master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A) == 1;
+    if(slapper_hold){
       slapper_on = !slapper_on;
     if(slapper2_on && slapper_on){
       slapper2_on = false;
@@ -242,7 +242,7 @@ void opcontrol() {
     
 
     if(master.get_digital(DIGITAL_R1)){
-      blocker.move(-100);
+      blocker.move(-95);
     }else if (master.get_digital(DIGITAL_R2)){
       blocker.move(-80);
     }else{
