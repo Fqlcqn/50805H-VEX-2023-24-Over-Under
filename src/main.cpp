@@ -55,18 +55,20 @@ Drive chassis (
 );
 
 //  PROS materials used for the robots movement on the map. 
-pros::Motor slapper(100);
+pros::Motor slapper(20);
 pros::Motor blocker(10);
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::ADIDigitalOut wings('G', false);
 pros::ADIDigitalOut intake('H', false);
-pros::ADIDigitalOut ratchet('F', false);
+pros::ADIDigitalOut plexi_blocker('F', false);
 
 bool slapper_on = false;
 bool slapper2_on = false;
 bool wings_on = false;
 bool intake_on = false;
-bool ratchet_on = false;
+bool plexi_blocker_on = false;
+bool flywheel_toggle = false;
+bool ratchet_toggle = false;
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -94,17 +96,11 @@ void initialize() {
 
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.add_autons({
-    Auton("Far Elim", auton_far_elim),
+    Auton("Skills Auton", skills_auton),
     Auton("Far WP", auton_far_wp),
+    Auton("Far Elim", auton_far_elim),
     Auton("Close WP", auton_close_wp),
-    Auton("Close Elim", drive_example),
-   /* Auton("Example Turn\n\nTurn 3 times.", turn_example),
-    Auton("Offense Auton\n\nTurn 3 times.", auton_offense),
-    Auton("Drive and Turn\n\nDrive forward, turn, come back. ", drive_and_turn),
-    Auton("Drive and Turn\n\nSlow down during drive.", wait_until_change_speed),
-    Auton("Swing Example\n\nSwing, drive, swing.", swing_example),
-    Auton("Combine all 3 movements", combining_movements),
-    Auton("Interference\n\nAfter driving forward, robot performs differently if interfered or not.", interfered_example),*/
+    Auton("Close Elim", auton_close_elim),
   });
 
   // Initialize chassis and auton selector
@@ -175,89 +171,104 @@ void autonomous() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off
  */
-void opcontrol() {
+void opcontrol(){
   // This is preference to what you like to drive on.
 
   slapper_on = false;
   slapper2_on = false;
   wings_on = false;
   intake_on = false;
-  ratchet_on = false;
+  plexi_blocker_on = false;
   wings.set_value(wings_on);
-  ratchet.set_value(ratchet_on);
+  plexi_blocker.set_value(plexi_blocker_on);
   intake.set_value(intake_on);
   slapper.move(0);
   blocker.set_brake_mode(MOTOR_BRAKE_HOLD);
   chassis.set_drive_brake(MOTOR_BRAKE_COAST);
+
   while (true) {
     bool slapper2_toggle = master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B) == 1;
-    if(slapper2_toggle){
+    if (slapper2_toggle) {
       slapper2_on = !slapper2_on;
-    if(slapper2_on && slapper_on){
-      slapper_on = false;
-    }
-      ratchet.set_value(ratchet_on);
+      if (slapper2_on && slapper_on) {
+        slapper_on = false;
+      }
+      plexi_blocker.set_value(plexi_blocker_on);
     }
     if (slapper2_on) {
       slapper.move(127);
-    }else{
-    if (!slapper_on){
-      slapper.move(0);
-    }
+    } else {
+      if (!slapper_on) {
+        slapper.move(0);
       }
+    }
     bool slapper_hold = master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A) == 1;
-    if(slapper_hold){
+    if (slapper_hold) {
       slapper_on = !slapper_on;
-    if(slapper2_on && slapper_on){
-      slapper2_on = false;
+      if (slapper2_on && slapper_on) {
+        slapper2_on = false;
+      }
     }
-    }
-    chassis.tank(); // Tank control
+    chassis.tank();
     if (slapper_on) {
       slapper.move(-127);
-    }else{
-       if (!slapper2_on){
-      slapper.move(0);
-    }
+    } else {
+      if (!slapper2_on) {
+        slapper.move(0);
       }
+    }
 
+    //WINGS TOGGLE:
     bool wings_toggle = master.get_digital_new_press(DIGITAL_L2) == 1;
-    if(wings_toggle){
+    if (wings_toggle) {
       wings_on = !wings_on;
       wings.set_value(wings_on);
     }
 
-    bool ratchet_toggle = master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y) == 1;
-    if(ratchet_toggle){
-      ratchet_on = !ratchet_on;
-      ratchet.set_value(ratchet_on);
+    //PLEXI BLOCKER TOGGLE:
+    bool plexi_blocker_toggle = master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y) == 1;
+    if (plexi_blocker_toggle) {
+      plexi_blocker_on = !plexi_blocker_on;
+      plexi_blocker.set_value(plexi_blocker_on);
     }
 
-
+    //INTAKE TOGGLE:
     bool intake_toggle = master.get_digital_new_press(DIGITAL_L1) == 1;
-    if(intake_toggle){
+    if (intake_toggle) {
       intake_on = !intake_on;
       intake.set_value(intake_on);
     }
-    
 
-    if(master.get_digital(DIGITAL_R1)){
-      blocker.move(-95);
-    }else if (master.get_digital(DIGITAL_R2)){
-      blocker.move(-80);
-    }else{
-      blocker.move(0);
+    //FLYWHEEL TOGGLE:
+    if (master.get_digital_new_press(DIGITAL_R1)) {
+      flywheel_toggle = !flywheel_toggle;
+
+      if (flywheel_toggle) {
+        blocker.move(-127);
+      } else {
+        blocker.move(0);
+      }
     }
 
+    if (master.get_digital_new_press(DIGITAL_R2)) {
+      flywheel_toggle = !flywheel_toggle;
 
-    // chassis.arcade_standard(ez::SPLIT); // Standard split arcade
-    // chassis.arcade_standard(ez::SINGLE); // Standard single arcade
-    // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
-    // chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
+      if (flywheel_toggle) {
+        blocker.move(-100);
+      } else {
+        blocker.move(0);
+      }
+    }
+    
 
-    // . . .
-    // Put more user control code here!
-    // . . .
+    //FLYWHEEL HOLD:
+    /*if(master.get_digital(DIGITAL_R1)){
+      blocker.move(-127);
+    } else if(master.get_digital(DIGITAL_R2)){
+      blocker.move(-100);
+    } else{
+      blocker.move(0);
+    }*/
 
     pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
