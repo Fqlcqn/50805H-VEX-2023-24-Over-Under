@@ -1,15 +1,16 @@
 #include "main.h"
 
 
-const int DRIVE_SPEED = 110;     
+const int DRIVE_SPEED = 110;
 const int TURN_SPEED  = 90;
 const int SWING_SPEED = 90;
 
 
-
-pros::Motor right_intake(14);
-pros::Motor left_intake(20);
-pros::ADIDigitalOut horizontal_wings('G', false);
+// Ports for functions below
+pros::Motor right_intake(20);
+pros::Motor left_intake(14);
+pros::ADIDigitalOut horiz_left('G', false);
+pros::ADIDigitalOut horiz_right('F', false);
 pros::Motor kicker(9);
 
 pros::Motor left1(-12);
@@ -53,19 +54,36 @@ void wingsUp() {
 
 // Horizontal Wings
 void horiz_wingsDown() {
-  horizontal_wings.set_value(true);
+  horiz_left.set_value(true);
+  horiz_right.set_value(true);
 }
 
 void horiz_wingsUp() {
-  horizontal_wings.set_value(false);
+  horiz_left.set_value(false);
+  horiz_right.set_value(false);
 }
 
+void horiz_leftDown() {
+  horiz_left.set_value(true);
+}
+
+void horiz_leftUp() {
+  horiz_left.set_value(false);
+}
+
+void horiz_rightDown() {
+  horiz_right.set_value(true);
+}
+
+void horiz_rightUp() {
+  horiz_right.set_value(false);
+}
 
 
 // Kicker
 void runKicker() {
   // Max Speed
-  kicker.move_velocity(600);
+  kicker.move_velocity(105);
 }
 
 void stopKicker() {
@@ -87,9 +105,9 @@ void chassisBrake(pros::motor_brake_mode_e_t M) {
 
 
 
+
+
 //AUTONS:
-
-
 
 
 
@@ -101,10 +119,9 @@ void auton_close_wp(){
   chassis.wait_drive();
   chassis.set_swing_pid(ez::RIGHT_SWING, 20, SWING_SPEED);
   chassis.wait_drive();
-  chassis.set_drive_pid(27.35, 90, true);
-  pros::delay(30);
-  chassis.wait_drive();
+  chassis.set_drive_pid(28.5, 90, true);
   pros::delay(100);
+  chassis.wait_drive();
   chassis.set_turn_pid(90, TURN_SPEED);
   chassis.wait_drive();
   horiz_wingsDown();
@@ -120,17 +137,15 @@ void auton_close_wp(){
   chassis.wait_drive();
   chassis.set_swing_pid(ez::RIGHT_SWING, -230, SWING_SPEED);
   runOuttake();
-  pros::delay(50);
+  pros::delay(75);
   chassis.wait_drive();
-  pros::delay(50);// DROPS TRIBALL FROM MID
   chassis.set_drive_pid(-35, 127, true);
   chassis.wait_drive();
-  chassis.set_turn_pid(-190, TURN_SPEED);
+  chassis.set_turn_pid(-185, TURN_SPEED);
   chassis.wait_drive();
   chassis.set_drive_pid(-10, 127, true);// SCORE BLUE TRIBALL
-  blocker.move_velocity(127);
   chassis.wait_drive();
-  chassis.set_drive_pid(18, 110, true);
+  chassis.set_drive_pid(17, 110, true);
   chassis.wait_drive();
   wingsDown();
   pros::delay(30);
@@ -138,15 +153,14 @@ void auton_close_wp(){
   chassis.wait_drive();
   wingsUp();
   runOuttake();
-  chassis.set_turn_pid(-268, TURN_SPEED);
+  chassis.set_turn_pid(-265, TURN_SPEED);
   pros::delay(200);
-  wingsDown();
+  horiz_rightDown();
   chassis.wait_drive();
-  chassis.set_drive_pid(37, 127, true);
-  wingsUp();
+  chassis.set_drive_pid(38, 127, true);
   chassis.wait_drive();
 
-  // OLD WP CODE:
+// OLD WP CODE:
   /*runIntake();
   wingsDown();
   pros::delay(30);
@@ -187,12 +201,41 @@ void auton_close_wp(){
 
 
 
+void auton_close_wp_safe(){
+  chassis.set_turn_pid(45, TURN_SPEED);
+  chassis.wait_drive();
+  chassis.set_drive_pid(-26, 127, true);
+  chassis.wait_drive();
+  chassis.set_turn_pid(85, TURN_SPEED);
+  chassis.wait_drive(); 
+  chassis.set_drive_pid(-10, 127, true);// SCORE BLUE TRIBALL
+  chassis.wait_drive();
+  chassis.set_drive_pid(6, 127, true);// SCORE BLUE TRIBALL
+  chassis.wait_drive();
+  chassis.set_swing_pid(ez::RIGHT_SWING, 45, SWING_SPEED);
+  chassis.wait_drive();
+  chassis.set_drive_pid(21, 110, true);
+  chassis.wait_drive();
+  wingsDown();
+  chassis.set_swing_pid(ez::RIGHT_SWING, 0, SWING_SPEED);// DESCORE
+  chassis.wait_drive();
+  wingsUp();
+  runOuttake();
+  horiz_rightDown();
+  chassis.set_turn_pid(8, TURN_SPEED);
+  chassis.wait_drive();
+  chassis.set_drive_pid(33, 127, true);
+  chassis.wait_drive();
+}
+
+
+
 void auton_far_qual(){ 
   runIntake();
-  chassis.set_drive_pid(4, 120, true);
-  pros::delay(100);
+  chassis.set_drive_pid(3, 90, true);
+  pros::delay(150);
   chassis.wait_drive();
-  chassis.set_drive_pid(-37.5, 100, true);
+  chassis.set_drive_pid(-37, 100, true);
   chassis.wait_drive();
   chassis.set_turn_pid(140, 110);
   chassis.wait_drive();
@@ -200,44 +243,41 @@ void auton_far_qual(){
   chassis.wait_drive();
   wingsDown();
   chassis.wait_drive();
-  chassis.set_drive_pid(6, 120, true);
+  chassis.set_drive_pid(2.5, 120, true);
   chassis.wait_drive();
   runOuttake();
   chassis.set_swing_pid(ez::RIGHT_SWING, 110, 110);// Descore
   pros::delay(500);
   wingsUp();
   chassis.wait_drive();
-  chassis.set_drive_pid(-2.5, 120, true);
-  chassis.wait_drive();
   chassis.set_turn_pid(-80, 110);// Turn to score
   chassis.wait_drive();
-  chassis.set_drive_pid(-10, 120, true);
+  chassis.set_drive_pid(-15, 120, true);
   chassis.wait_drive();
   chassis.set_drive_pid(15, 127, true);
   stopIntake();
   chassis.wait_drive();
-  chassis.set_turn_pid(22.5, 110);
+  chassis.set_turn_pid(22, 110);
   chassis.wait_drive();
   runIntake();
-  chassis.set_drive_pid(53, 120, true);
+  chassis.set_drive_pid(50, 120, true);
   chassis.wait_drive();
-  pros::delay(75);// Intakes first triball from mid
+  chassis.set_turn_pid(149, 100);// Turn to drop triball at mid
+  pros::delay(400);
   runOuttake();
-  chassis.set_turn_pid(140, 100);// Turn to drop triball at mid
-  chassis.wait_drive();
-  chassis.set_drive_pid(10, 127, true);
-  chassis.wait_drive();
+  pros::delay(1000);
   runIntake();
   chassis.wait_drive();
-  chassis.set_turn_pid(49, 110);
+  chassis.set_turn_pid(59, 110);
   chassis.wait_drive();
-  chassis.set_drive_pid(21, 120, true);
+  chassis.set_drive_pid(19, 120, true);
   chassis.wait_drive();
   chassis.set_turn_pid(180, 110);// Turn to face goal
-  chassis.wait_drive();
-  horiz_wingsDown();
+  pros::delay(275);
   runOuttake();
-  chassis.set_drive_pid(34, 120, true);// Scores
+  horiz_wingsDown();
+  chassis.wait_drive();
+  chassis.set_drive_pid(32, 120, true);// Scores
   chassis.wait_drive();
   chassis.set_drive_pid(-10, 127, true);
   horiz_wingsUp();
@@ -245,349 +285,240 @@ void auton_far_qual(){
 }
 
 
+
 void auton_far_elim(){
   runIntake();
-  pros::delay(10);
   wingsUp();
   chassis.set_drive_pid(20, DRIVE_SPEED, true);
   chassis.wait_drive();
-  chassis.set_turn_pid(-47, TURN_SPEED);
+  chassis.set_turn_pid(-46, TURN_SPEED);
   chassis.wait_drive();
-  chassis.set_drive_pid(39, 90, true);
+  chassis.set_drive_pid(39.75, 90, true);
   chassis.wait_drive();
-  pros::delay(30);
+  chassis.set_turn_pid(90, 85);
   chassis.wait_drive();
-  chassis.set_turn_pid(-90, TURN_SPEED);
-  chassis.wait_drive();
-  wingsDown();
-  chassis.wait_drive();
-  chassis.set_drive_pid(-33, DRIVE_SPEED, true);
-  chassis.wait_drive();
-  chassis.set_drive_pid(10, DRIVE_SPEED, true);
-  wingsUp();
-  chassis.wait_drive();
-  chassis.set_turn_pid(90, TURN_SPEED);
-  chassis.wait_drive();
+  horiz_wingsDown();
   runOuttake();
   chassis.wait_drive();
-  chassis.set_drive_pid(14.75, 115, true);
+  chassis.set_drive_pid(35, DRIVE_SPEED, true);// Scores mid triballs
   chassis.wait_drive();
-  chassis.set_drive_pid(-30, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(147, TURN_SPEED);
-  chassis.wait_drive();
-  chassis.set_drive_pid(51, 90, true);//good^
-  chassis.wait_drive();
-  chassis.wait_drive();
-  chassis.set_turn_pid(90, TURN_SPEED);
-  chassis.wait_drive();
-  chassis.set_drive_pid(18, DRIVE_SPEED, true);
-  chassis.wait_drive();
-  wingsDown();
-  chassis.wait_drive();
-  chassis.set_turn_pid(5, TURN_SPEED);
-  chassis.wait_drive();
-  chassis.wait_drive();
-  chassis.set_drive_pid(19, DRIVE_SPEED, true);
-  chassis.wait_drive();
+  horiz_wingsUp();
+  chassis.set_drive_pid(-20, DRIVE_SPEED, true);
   wingsUp();
   chassis.wait_drive();
-  stopIntake();
-  chassis.set_drive_pid(-14, DRIVE_SPEED, true);
+  chassis.set_turn_pid(228, TURN_SPEED);
+  runIntake();
   chassis.wait_drive();
-  chassis.set_turn_pid(175, TURN_SPEED);
+  chassis.set_drive_pid(20, DRIVE_SPEED, true);
   chassis.wait_drive();
-  chassis.set_drive_pid(-15, 127, true);
+  chassis.set_turn_pid(135, TURN_SPEED);
   chassis.wait_drive();
-  chassis.set_drive_pid(5, DRIVE_SPEED , true);
+  chassis.set_drive_pid(48, DRIVE_SPEED, true);
+  chassis.wait_drive();
+  chassis.set_turn_pid(48, TURN_SPEED);
+  chassis.wait_drive();
+  chassis.set_drive_pid(11.75, DRIVE_SPEED, true);
+  chassis.wait_drive();
+  wingsDown();
+  runOuttake();
+  chassis.set_swing_pid(ez::RIGHT_SWING, -5, SWING_SPEED);
+  pros::delay(1000);
+  wingsUp();
+  chassis.wait_drive();
+  chassis.set_turn_pid(-160, TURN_SPEED);
+  chassis.wait_drive();
+  chassis.set_drive_pid(-17, DRIVE_SPEED, true);
+  chassis.wait_drive();
+  chassis.set_drive_pid(3, DRIVE_SPEED, true);
+  chassis.wait_drive();
 }
 
 
 
 void auton_close_elim(){
   runIntake();
-  chassis.set_drive_pid(20, DRIVE_SPEED, true);
+  chassis.set_drive_pid(52, 127, true);
   chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, 20, SWING_SPEED);
-  chassis.wait_drive();
-  chassis.set_drive_pid(27.35, 90, true);
-  pros::delay(30);
-  chassis.wait_drive();
-  pros::delay(100);
-  chassis.set_turn_pid(90, TURN_SPEED);
+  chassis.set_turn_pid(68, TURN_SPEED);
   chassis.wait_drive();
   horiz_wingsDown();
   pros::delay(30);
+  runOuttake();
   chassis.set_drive_pid(20, 127, true);// Pushes triball over barrier
   chassis.wait_drive();
   chassis.set_drive_pid(-27, 100, true);
+  runIntake();
   horiz_wingsUp();
   chassis.wait_drive();
-  chassis.set_turn_pid(-180, TURN_SPEED);// TURN AT MID
+  chassis.set_turn_pid(-202, TURN_SPEED);// TURN AT MID
   chassis.wait_drive();
-  chassis.set_drive_pid(45.75, 110, true);
+  chassis.set_drive_pid(46.5, 110, true);
   chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, -230, SWING_SPEED);
+  chassis.set_swing_pid(ez::RIGHT_SWING, -252, SWING_SPEED);
   runOuttake();
-  pros::delay(50);
+  pros::delay(75);
   chassis.wait_drive();
-  pros::delay(50);// DROPS TRIBALL FROM MID
   chassis.set_drive_pid(-35, 127, true);
   chassis.wait_drive();
-  chassis.set_turn_pid(-190, TURN_SPEED);
+  chassis.set_turn_pid(-207, TURN_SPEED);
   chassis.wait_drive();
   chassis.set_drive_pid(-10, 127, true);// SCORE BLUE TRIBALL
-  blocker.move_velocity(127);
   chassis.wait_drive();
-  chassis.set_drive_pid(18, 110, true);
+  chassis.set_drive_pid(17, 110, true);
   chassis.wait_drive();
   wingsDown();
   pros::delay(30);
-  chassis.set_swing_pid(ez::RIGHT_SWING, -280, SWING_SPEED);// DESCORE
+  chassis.set_swing_pid(ez::RIGHT_SWING, -302, SWING_SPEED);// DESCORE
   chassis.wait_drive();
   wingsUp();
   runOuttake();
-  chassis.set_turn_pid(-255, TURN_SPEED);
+  chassis.set_turn_pid(-287, TURN_SPEED);
   pros::delay(200);
-  wingsDown();
+  horiz_rightDown();
   chassis.wait_drive();
-  chassis.set_drive_pid(40, 127, true);
+  chassis.set_drive_pid(39.25, 127, true);
   chassis.wait_drive();
-  chassis.set_drive_pid(-41, 127, true);
-  chassis.wait_drive();
-  stopIntake();
 }
 
 
 
 void skills_auton(){
-
-
-  // This auton was pseudo coded on 2/16
-
   // Going to position
-  chassis.set_turn_pid(45, 127);
+  chassis.set_turn_pid(135, 127);
   chassis.wait_drive();
-  chassis.set_drive_pid(-15, 127, true);
+  chassis.set_drive_pid(-16, 127, true);
   chassis.wait_drive();
-  chassis.set_turn_pid(0, 127);
+  chassis.set_swing_pid(ez::RIGHT_SWING, 180, 127);
   chassis.wait_drive();
-  chassis.set_drive_pid(-10, 127, true);
+  chassis.set_drive_pid(-14, 127, true);
   chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, 110, 127);
+  chassis.set_drive_pid(14.5, 127, true);
   chassis.wait_drive();
-  chassis.set_drive_pid(-10, 127, true);
-
+  chassis.set_turn_pid(65, 127);
+  chassis.wait_drive();
+  chassis.set_drive_pid(1, 127, true);
+  chassis.wait_drive();
+  wingsDown();
+  chassis.wait_drive();
 
   // Match Loading & Brakes
-  wingsDown();
+    runOuttake();
   chassisBrake(MOTOR_BRAKE_BRAKE);
   runKicker();
-  pros::delay(30000); // Match loading time (ms)
+  pros::delay(26000);// Match loading time (ms)
   stopKicker();
   chassisBrake(MOTOR_BRAKE_COAST);
   chassis.wait_drive();
 
-
-  // Pushing triballs using horz_wings
-  wingsUp();
-  runOuttake();
-  chassis.set_drive_pid(20, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::LEFT_SWING, 180, 127);
-  pros::delay(200);
-  horiz_wingsDown();
-  chassis.set_drive_pid(60, 127, true);
-  pros::delay(300);
-  horiz_wingsUp();
-  chassis.set_turn_pid(-90, 127);
-  chassis.wait_drive();
-  chassis.set_drive_pid(15, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, 180, 127);
-  chassis.wait_drive();
-  chassis.set_drive_pid(15, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::LEFT_SWING, 90, 127);
-
-
   // Going to other side
+  stopIntake();
+  wingsUp();
+  chassis.set_swing_pid(ez::LEFT_SWING, 120, 127);
+  chassis.wait_drive();
   chassis.set_drive_pid(30, 127, true);
+  chassis.wait_drive();
+  horiz_leftDown();
+  chassis.set_swing_pid(ez::RIGHT_SWING, 90, 127);
+  chassis.wait_drive();
+  chassis.set_drive_pid(69, 127, true);
   chassis.wait_drive();
   chassis.set_swing_pid(ez::RIGHT_SWING, 45, 127);
   chassis.wait_drive();
-  chassis.set_drive_pid(10, 127, true);
+  chassis.set_drive_pid(21.5, 127, true);
   chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, 0, 127);
+  runOuttake();
+  chassis.set_swing_pid(ez::RIGHT_SWING, 5, 127);
   chassis.wait_drive();
 
   // First Side Push
-  horiz_wingsDown();
-  chassis.set_drive_pid(10, 127, true);
+  horiz_leftUp();
+  chassis.set_drive_pid(15, 127, true);
   chassis.wait_drive();
-  chassis.set_drive_pid(-12, 127, true);
-  pros::delay(300);
-  horiz_wingsUp();
+  chassis.set_drive_pid(-14, 127, true);
   chassis.wait_drive();
-  chassis.set_turn_pid(-80, 127);
+  chassis.set_turn_pid(6, 127);
+  chassis.wait_drive();
+  chassis.set_drive_pid(16.5, 127, true);// Second Push on side
+  chassis.wait_drive();
+  chassis.set_drive_pid(-14, 127, true);
+  chassis.wait_drive();
+  chassis.set_turn_pid(-60, 127);
+  stopIntake();
   chassis.wait_drive();
 
   // Going to First Mid Push
-  chassis.set_drive_pid(30, 127, true);
+  chassis.set_drive_pid(28, 110, true);
   chassis.wait_drive();
-  chassis.set_turn_pid(0, 127);
+  horiz_wingsDown();
+  chassis.set_swing_pid(ez::LEFT_SWING, 90, 127);
   chassis.wait_drive();
-  chassis.set_drive_pid(30, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(-90, 127);
-  pros::delay(200);
 
-  //First Mid Push
-  wingsDown();
-  chassis.set_drive_pid(-25, 127, true);
+  // First Mid Push
+  runOuttake();
+  chassis.set_drive_pid(21, 127, true);
   chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, -60, 127);
-  pros::delay(100);
-  wingsUp();
+  horiz_wingsUp();
+  stopIntake();
+  chassis.set_drive_pid(-8, 127, true);
   chassis.wait_drive();
 
   // Going to Second Mid Push
-  chassis.set_drive_pid(25, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(-20, 127);
-  chassis.wait_drive();
-  chassis.set_drive_pid(7, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(-90, 127);
-  chassis.wait_drive();
-
-  // Second Mid Push
-  wingsDown();
-  chassis.set_drive_pid(-25, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, -45, 127);
-  pros::delay(200);
-  wingsUp();
-
-  // Going to Last Push
+  chassis.set_turn_pid(-78, 127);
   chassis.wait_drive();
   chassis.set_drive_pid(15, 127, true);
   chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, 45, 127);
+  chassis.set_swing_pid(ez::LEFT_SWING, 0, 127);
+  chassis.wait_drive();
+  chassis.set_drive_pid(7.5, 127, true);
+  chassis.wait_drive();
+  chassis.set_swing_pid(ez::LEFT_SWING, 90, 127);
+  chassis.wait_drive();
+  
+  // Second Mid Push
+  horiz_wingsDown();
+  chassis.set_drive_pid(31, 127, true);
+  chassis.wait_drive();
+  chassis.set_drive_pid(-18, 127, true);
+  chassis.wait_drive();
+  horiz_wingsUp();
+  chassis.set_swing_pid(ez::LEFT_SWING, -90, 127);
+  chassis.wait_drive();
+
+  // Third Mid Push
+  wingsDown();
+  chassis.set_drive_pid(-30.5, 127, true);
+  chassis.wait_drive();
+  chassis.set_drive_pid(10, 127, true);
+  wingsUp();
+  chassis.wait_drive();
+
+  // Going to Last Push
+  chassis.wait_drive();
+  chassis.set_turn_pid(0, 127);
+  chassis.wait_drive();
+  chassis.set_drive_pid(35, 127, true);
+  chassis.wait_drive();
+  chassis.set_swing_pid(ez::LEFT_SWING, 45, 127);
   horiz_wingsDown();
   chassis.wait_drive();
-  chassis.set_drive_pid(12, 127, true);
+  chassis.set_drive_pid(20, 110, true);
   chassis.wait_drive();
   chassis.set_swing_pid(ez::LEFT_SWING, 180, 127);
   chassis.wait_drive();
 
   // Last Push
-  chassis.set_drive_pid(15, 127, true);
+  chassis.set_drive_pid(23, 127, true);
   chassis.wait_drive();
-  chassis.set_drive_pid(-5, 127, true);
+  chassis.set_drive_pid(-10, 127, true);
+  chassis.wait_drive();
+  chassis.set_drive_pid(18, 127, true);
+  chassis.wait_drive();
+  chassis.set_drive_pid(-3, 127, true);
+  chassis.wait_drive();
   horiz_wingsUp();
   wingsUp();
   stopIntake();
 
-  
-  // This auton was coded ~2/14. Old route, new route above^
-  /*Skills auton without pushing triballs into bowling alley (pseudo code)
-  chassis.set_drive_pid(10, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(75, 127);
-  chassis.wait_drive();
-  chassis.set_drive_pid(-15, 127, true);
-  chassis.wait_drive();
-  
-  // Match Loading & Brakes
-  wingsDown();
-  chassisBrake(MOTOR_BRAKE_BRAKE);
-  runKicker();
-  pros::delay(30000);
-  stopKicker();
-  chassisBrake(MOTOR_BRAKE_COAST);
-  chassis.wait_drive();
-
-
-  // Scoring triballs
-  wingsUp();
-  runOuttake();
-  chassis.set_swing_pid(ez::LEFT_SWING, 135, 127);
-  chassis.wait_drive();
-  chassis.set_drive_pid(15, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(90, 127);
-  chassis.wait_drive();
-  wingsDown();
-  chassis.set_drive_pid(40, 127, true);
-  chassis.wait_drive();
-  wingsUp();
-  horiz_wingsDown(); // Went to other side
-
-  chassis.set_swing_pid(ez::RIGHT_SWING, 45, 127);
-  chassis.wait_drive();
-  chassis.set_drive_pid(10, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, 0, 127);
-  chassis.wait_drive();
-
-  // First Side Push
-  chassis.set_drive_pid(10, 127, true);
-  chassis.wait_drive();
-  chassis.set_drive_pid(-12, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(-45, 127);
-  chassis.wait_drive();
-
-  // Going to First Mid Push
-  chassis.set_drive_pid(30, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(-90, 127);
-  pros::delay(200);
-
-  //First Mid Push
-  wingsDown();
-  chassis.set_drive_pid(-25, 127, true);
-  chassis.wait_drive();
-  chassis.set_drive_pid(25, 127, true);
-  pros::delay(100);
-  wingsUp();
-  chassis.wait_drive();
-
-  // Going to Second Mid Push
-  chassis.set_turn_pid(0, 127);
-  chassis.wait_drive();
-  chassis.set_drive_pid(15, 127, true);
-  chassis.wait_drive();
-  chassis.set_turn_pid(-90, 127);
-  chassis.wait_drive();
-
-  // Second Mid Push
-  wingsDown();
-  chassis.set_drive_pid(-25, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, -45, 127);
-  wingsUp();
-
-  // Going to Last Push
-  chassis.wait_drive();
-  chassis.set_drive_pid(15, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::RIGHT_SWING, 45, 127);
-  horiz_wingsDown();
-  chassis.wait_drive();
-  chassis.set_drive_pid(12, 127, true);
-  chassis.wait_drive();
-  chassis.set_swing_pid(ez::LEFT_SWING, 180, 127);
-  chassis.wait_drive();
-
-  // Last Push
-  chassis.set_drive_pid(15, 127, true);
-  chassis.wait_drive();
-  chassis.set_drive_pid(-5, 127, true);
-  horiz_wingsUp();
-  wingsUp();
-  stopIntake();*/
 }
 
 
@@ -656,7 +587,6 @@ void modified_exit_condition() {
   chassis.set_exit_condition(chassis.drive_exit, 80, 50, 300, 150, 500, 500);
 }
 
-
 void wait_until_change_speed() {
   // wait_until will wait until the robot gets to a desired position
 
@@ -682,7 +612,6 @@ void wait_until_change_speed() {
   chassis.set_max_speed(40); // After driving 6 inches at DRIVE_SPEED, the robot will go the remaining distance at 40 speed
   chassis.wait_drive();
 }
-
 
 // Interference example
 void tug (int attempts) {

@@ -17,7 +17,7 @@ Drive chassis (
 
   // IMU Port
   // TODO: Mount IMU
-  ,2
+  ,5
 
   // Wheel Diameter (Remember, 4" wheels are actually 4.125!)
   //    (or tracking wheel diameter)
@@ -55,7 +55,8 @@ pros::Motor blocker(20);
 pros::Motor blocker2(14);
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::ADIDigitalOut wings('E', false);
-pros::ADIDigitalOut horiz_wings('G', false);
+pros::ADIDigitalOut horiz_left_wing('G', false);
+pros::ADIDigitalOut horiz_right_wing('F', false);
 pros::ADIDigitalOut hang('C', false);
 
 
@@ -63,10 +64,9 @@ bool kicker_toggle = false;
 bool slapper_on = false;
 bool slapper2_on = false;
 bool wings_on = false;
-bool horiz_wings_on = false;
+bool horiz_left_wing_on = false;
+bool horiz_right_wing_on = false;
 bool hang_on = false;
-bool flywheel_toggle = false;
-bool flywheel2_toggle = false;
 
 
 
@@ -99,6 +99,7 @@ void initialize() {
     Auton("Far Qual", auton_far_qual),
     Auton("Far Elim", auton_far_elim),
     Auton("Close WP", auton_close_wp),
+    Auton("Close WP Safe", auton_close_wp_safe),
     Auton("Close Elim", auton_close_elim),
     Auton("Skills Auton", skills_auton),
   });
@@ -173,17 +174,20 @@ void autonomous() {
  * task, not resume it from where it left off
  */
 void opcontrol(){
+  
   // Driving Functions
 
   slapper_on = false;
   slapper2_on = false;
   kicker_toggle = false;
   wings_on = false;
-  horiz_wings_on = false;
+  horiz_left_wing_on = false;
+  horiz_right_wing_on = false;
   hang_on = false;
 
   wings.set_value(wings_on);
-  horiz_wings.set_value(horiz_wings_on);
+  horiz_left_wing.set_value(horiz_left_wing_on);
+  horiz_right_wing.set_value(horiz_right_wing_on);
   hang.set_value(hang_on);
   slapper.move(0);
   blocker.set_brake_mode(MOTOR_BRAKE_HOLD);
@@ -202,21 +206,37 @@ void opcontrol(){
     }
 
 
-  //WINGS TOGGLE:
+  // WINGS TOGGLE:
     bool wings_toggle = master.get_digital_new_press(DIGITAL_B) == 1;
     if (wings_toggle) {
       wings_on = !wings_on;
       wings.set_value(wings_on);
     }
 
-  //HORIZONTAL WINGS TOGGLE
-  bool horiz_wings_toggle = master.get_digital_new_press(DIGITAL_R1) == 1;
-  if (horiz_wings_toggle) {
-    horiz_wings_on = !horiz_wings_on;
-    horiz_wings.set_value(horiz_wings_on);
-  }
+  // HORIZONTAL LEFT WING TOGGLE
+  bool horiz_left_wing_toggle = master.get_digital_new_press(DIGITAL_LEFT) == 1;
+    if (horiz_left_wing_toggle) {
+      horiz_left_wing_on = !horiz_left_wing_on;
+      horiz_left_wing.set_value(horiz_left_wing_on);
+    }
+  
+  // HORIZONTAL RIGHT WING TOGGLE
+  bool horiz_right_wing_toggle = master.get_digital_new_press(DIGITAL_RIGHT) == 1;
+    if (horiz_right_wing_toggle) {
+      horiz_right_wing_on = !horiz_right_wing_on;
+      horiz_right_wing.set_value(horiz_right_wing_on);
+    }
 
-  //HANG TOGGLE:
+  // HORIZONTAL BOTH WINGS TOGGLE
+  bool horiz_both_wings_toggle = master.get_digital_new_press(DIGITAL_R1) == 1;
+    if (horiz_both_wings_toggle) {
+      horiz_left_wing_on = !horiz_left_wing_on;
+      horiz_right_wing_on = !horiz_right_wing_on;
+      horiz_left_wing.set_value(horiz_left_wing_on);
+      horiz_right_wing.set_value(horiz_right_wing_on);
+    }
+
+  // HANG TOGGLE:
   bool hang_toggle = master.get_digital_new_press(DIGITAL_A) == 1;
 
 
@@ -225,14 +245,14 @@ void opcontrol(){
     hang.set_value(hang_on);
   }
 
-  //KICKER TOGGLE
+  // KICKER TOGGLE
   bool kicker_toggle_button = master.get_digital_new_press(DIGITAL_R2) == 1; // Change the button as per your preference
   if (kicker_toggle_button) {
     kicker_toggle = !kicker_toggle;
   }
 
   if (kicker_toggle) {
-    slapper.move_velocity(100); 
+    slapper.move_velocity(105); 
   } else {
     slapper.move(0);
   }
@@ -248,6 +268,8 @@ void opcontrol(){
     blocker.move(0);
     blocker2.move(0);
   }
+
+
 
 
     pros::delay(ez::util::DELAY_TIME); 
