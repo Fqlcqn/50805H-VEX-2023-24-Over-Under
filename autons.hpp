@@ -14,6 +14,7 @@ extern pros::ADIDigitalOut ratchet;
 void auton_far_elim();
 void auton_far_qual();
 void auton_close_wp();
+void auton_close_wp_safe();
 void auton_close_elim();
 void skills_auton();
 
